@@ -9,7 +9,7 @@
 import hashlib
 from os import urandom
 
-from hscommon.path import Path
+from pathlib import Path
 from hscommon.testutil import eq_
 from core.tests.directories_test import create_fake_fs
 
@@ -17,32 +17,26 @@ from .. import fs
 
 
 def create_fake_fs_with_random_data(rootpath):
-    rootpath = rootpath["fs"]
+    rootpath = rootpath.joinpath("fs")
     rootpath.mkdir()
-    rootpath["dir1"].mkdir()
-    rootpath["dir2"].mkdir()
-    rootpath["dir3"].mkdir()
-    fp = rootpath["file1.test"].open("wb")
+    rootpath.joinpath("dir1").mkdir()
+    rootpath.joinpath("dir2").mkdir()
+    rootpath.joinpath("dir3").mkdir()
     data1 = urandom(200 * 1024)  # 200KiB
     data2 = urandom(1024 * 1024)  # 1MiB
     data3 = urandom(10 * 1024 * 1024)  # 10MiB
-    fp.write(data1)
-    fp.close()
-    fp = rootpath["file2.test"].open("wb")
-    fp.write(data2)
-    fp.close()
-    fp = rootpath["file3.test"].open("wb")
-    fp.write(data3)
-    fp.close()
-    fp = rootpath["dir1"]["file1.test"].open("wb")
-    fp.write(data1)
-    fp.close()
-    fp = rootpath["dir2"]["file2.test"].open("wb")
-    fp.write(data2)
-    fp.close()
-    fp = rootpath["dir3"]["file3.test"].open("wb")
-    fp.write(data3)
-    fp.close()
+    with rootpath.joinpath("file1.test").open("wb") as fp:
+        fp.write(data1)
+    with rootpath.joinpath("file2.test").open("wb") as fp:
+        fp.write(data2)
+    with rootpath.joinpath("file3.test").open("wb") as fp:
+        fp.write(data3)
+    with rootpath.joinpath("dir1", "file1.test").open("wb") as fp:
+        fp.write(data1)
+    with rootpath.joinpath("dir2", "file2.test").open("wb") as fp:
+        fp.write(data2)
+    with rootpath.joinpath("dir3", "file3.test").open("wb") as fp:
+        fp.write(data3)
     return rootpath
 
 
@@ -58,12 +52,12 @@ def test_md5_aggregate_subfiles_sorted(tmpdir):
     # same order everytime.
     p = create_fake_fs_with_random_data(Path(str(tmpdir)))
     b = fs.Folder(p)
-    md51 = fs.File(p["dir1"]["file1.test"]).md5
-    md52 = fs.File(p["dir2"]["file2.test"]).md5
-    md53 = fs.File(p["dir3"]["file3.test"]).md5
-    md54 = fs.File(p["file1.test"]).md5
-    md55 = fs.File(p["file2.test"]).md5
-    md56 = fs.File(p["file3.test"]).md5
+    md51 = fs.File(p.joinpath("dir1", "file1.test")).md5
+    md52 = fs.File(p.joinpath("dir2", "file2.test")).md5
+    md53 = fs.File(p.joinpath("dir3", "file3.test")).md5
+    md54 = fs.File(p.joinpath("file1.test")).md5
+    md55 = fs.File(p.joinpath("file2.test")).md5
+    md56 = fs.File(p.joinpath("file3.test")).md5
     # The expected md5 is the md5 of md5s for folders and the direct md5 for files
     folder_md51 = hashlib.md5(md51).digest()
     folder_md52 = hashlib.md5(md52).digest()
@@ -75,12 +69,12 @@ def test_md5_aggregate_subfiles_sorted(tmpdir):
 def test_partial_md5_aggregate_subfile_sorted(tmpdir):
     p = create_fake_fs_with_random_data(Path(str(tmpdir)))
     b = fs.Folder(p)
-    md51 = fs.File(p["dir1"]["file1.test"]).md5partial
-    md52 = fs.File(p["dir2"]["file2.test"]).md5partial
-    md53 = fs.File(p["dir3"]["file3.test"]).md5partial
-    md54 = fs.File(p["file1.test"]).md5partial
-    md55 = fs.File(p["file2.test"]).md5partial
-    md56 = fs.File(p["file3.test"]).md5partial
+    md51 = fs.File(p.joinpath("dir1", "file1.test")).md5partial
+    md52 = fs.File(p.joinpath("dir2", "file2.test")).md5partial
+    md53 = fs.File(p.joinpath("dir3", "file3.test")).md5partial
+    md54 = fs.File(p.joinpath("file1.test")).md5partial
+    md55 = fs.File(p.joinpath("file2.test")).md5partial
+    md56 = fs.File(p.joinpath("file3.test")).md5partial
     # The expected md5 is the md5 of md5s for folders and the direct md5 for files
     folder_md51 = hashlib.md5(md51).digest()
     folder_md52 = hashlib.md5(md52).digest()
@@ -88,12 +82,12 @@ def test_partial_md5_aggregate_subfile_sorted(tmpdir):
     md5 = hashlib.md5(folder_md51 + folder_md52 + folder_md53 + md54 + md55 + md56)
     eq_(b.md5partial, md5.digest())
 
-    md51 = fs.File(p["dir1"]["file1.test"]).md5samples
-    md52 = fs.File(p["dir2"]["file2.test"]).md5samples
-    md53 = fs.File(p["dir3"]["file3.test"]).md5samples
-    md54 = fs.File(p["file1.test"]).md5samples
-    md55 = fs.File(p["file2.test"]).md5samples
-    md56 = fs.File(p["file3.test"]).md5samples
+    md51 = fs.File(p.joinpath("dir1", "file1.test")).md5samples
+    md52 = fs.File(p.joinpath("dir2", "file2.test")).md5samples
+    md53 = fs.File(p.joinpath("dir3", "file3.test")).md5samples
+    md54 = fs.File(p.joinpath("file1.test")).md5samples
+    md55 = fs.File(p.joinpath("file2.test")).md5samples
+    md56 = fs.File(p.joinpath("file3.test")).md5samples
     # The expected md5 is the md5 of md5s for folders and the direct md5 for files
     folder_md51 = hashlib.md5(md51).digest()
     folder_md52 = hashlib.md5(md52).digest()
